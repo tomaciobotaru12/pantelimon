@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { EditStoryForm } from "@/components/edit-story-form";
+import type { Location, Story } from "@/types/database";
 
 export default async function EditStoryPage({
   params,
@@ -15,27 +16,30 @@ export default async function EditStoryPage({
   } = await supabase.auth.getUser();
   if (!user) redirect(`/login?next=/stories/${id}/edit`);
 
-  const { data: story } = await supabase
+  const storyRes = await supabase
     .from("stories")
     .select("*")
     .eq("id", id)
     .maybeSingle();
+  const story = storyRes.data as Story | null;
 
   if (!story) return notFound();
 
-  const { data: me } = await supabase
+  const meRes = await supabase
     .from("profiles")
     .select("is_admin")
     .eq("id", user.id)
     .maybeSingle();
+  const me = meRes.data as { is_admin: boolean } | null;
   const isAdmin = me?.is_admin === true;
 
   if (story.user_id !== user.id && !isAdmin) redirect(`/stories/${id}`);
 
-  const { data: locations } = await supabase
+  const locRes = await supabase
     .from("locations")
     .select("*")
     .order("title");
+  const locations = (locRes.data ?? []) as Location[];
 
   return (
     <div className="container py-10 sm:py-14 max-w-2xl">
@@ -46,7 +50,7 @@ export default async function EditStoryPage({
         {story.title}
       </h1>
       <div className="mt-8">
-        <EditStoryForm story={story} locations={locations ?? []} />
+        <EditStoryForm story={story} locations={locations} />
       </div>
     </div>
   );

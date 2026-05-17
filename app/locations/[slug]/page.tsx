@@ -5,7 +5,7 @@ import { StoryCard } from "@/components/story-card";
 import { BeforeAfter } from "@/components/before-after";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, MapPin, ArrowRight } from "lucide-react";
-import type { StoryWithRelations } from "@/types/database";
+import type { Location, StoryWithRelations } from "@/types/database";
 
 export const revalidate = 60;
 
@@ -17,19 +17,22 @@ export default async function LocationPage({
   const { slug } = await params;
   const supabase = await createClient();
 
-  const { data: location } = await supabase
+  const locRes = await supabase
     .from("locations")
     .select("*")
     .eq("slug", slug)
     .maybeSingle();
 
+  const location = locRes.data as Location | null;
   if (!location) return notFound();
 
-  const { data: stories } = await supabase
+  const storiesRes = await supabase
     .from("stories")
     .select("*, profile:profiles(*), location:locations(*), images:story_images(*)")
     .eq("location_id", location.id)
     .order("created_at", { ascending: false });
+
+  const stories = storiesRes.data as StoryWithRelations[] | null;
 
   const list = (stories ?? []) as StoryWithRelations[];
   const historicalUrl = location.historical_image_url;

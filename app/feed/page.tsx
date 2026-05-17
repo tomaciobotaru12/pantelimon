@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { StoryCard } from "@/components/story-card";
 import { FeedFilters } from "@/components/feed-filters";
 import { decadeOf } from "@/lib/utils";
-import type { StoryWithRelations } from "@/types/database";
+import type { Location, StoryWithRelations } from "@/types/database";
 
 export const revalidate = 30;
 
@@ -34,12 +34,13 @@ export default async function FeedPage({
     );
   }
 
-  const [{ data: stories }, { data: locations }] = await Promise.all([
+  const [storiesRes, locRes] = await Promise.all([
     query,
     supabase.from("locations").select("*").order("title"),
   ]);
 
-  const list = (stories ?? []) as StoryWithRelations[];
+  const list = (storiesRes.data ?? []) as StoryWithRelations[];
+  const locations = (locRes.data ?? []) as Location[];
 
   // Client-side decade filter (avoids needing a generated column).
   const filtered = params.decade
@@ -66,7 +67,7 @@ export default async function FeedPage({
       </p>
 
       <div className="mt-8">
-        <FeedFilters locations={locations ?? []} tags={allTags} decades={allDecades} />
+        <FeedFilters locations={locations} tags={allTags} decades={allDecades} />
       </div>
 
       <div className="mt-10">

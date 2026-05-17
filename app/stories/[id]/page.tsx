@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { DeleteStoryButton } from "@/components/delete-story-button";
 import { MapPin, Calendar, ArrowLeft, Pencil } from "lucide-react";
 import { formatDate } from "@/lib/utils";
+import type { StoryWithRelations } from "@/types/database";
 
 export const revalidate = 0;
 
@@ -19,12 +20,13 @@ export default async function StoryPage({
   const { id } = await params;
   const supabase = await createClient();
 
-  const { data: story } = await supabase
+  const storyRes = await supabase
     .from("stories")
     .select("*, profile:profiles(*), location:locations(*), images:story_images(*)")
     .eq("id", id)
     .maybeSingle();
 
+  const story = storyRes.data as StoryWithRelations | null;
   if (!story) return notFound();
 
   const {
@@ -33,11 +35,12 @@ export default async function StoryPage({
 
   let isAdmin = false;
   if (user) {
-    const { data: me } = await supabase
+    const meRes = await supabase
       .from("profiles")
       .select("is_admin")
       .eq("id", user.id)
       .maybeSingle();
+    const me = meRes.data as { is_admin: boolean } | null;
     isAdmin = me?.is_admin === true;
   }
 

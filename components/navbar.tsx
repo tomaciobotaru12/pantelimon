@@ -11,14 +11,14 @@ export async function Navbar() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  let profile = null;
+  let profile: { username: string | null; avatar_url: string | null } | null = null;
   if (user) {
-    const { data } = await supabase
+    const res = await supabase
       .from("profiles")
       .select("username, avatar_url")
       .eq("id", user.id)
       .maybeSingle();
-    profile = data;
+    profile = res.data as { username: string | null; avatar_url: string | null } | null;
   }
 
   return (

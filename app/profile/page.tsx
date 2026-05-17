@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { StoryCard } from "@/components/story-card";
 import { formatDate } from "@/lib/utils";
 import { LogOut, Plus } from "lucide-react";
-import type { StoryWithRelations } from "@/types/database";
+import type { Profile, StoryWithRelations } from "@/types/database";
 
 export default async function ProfilePage() {
   const supabase = await createClient();
@@ -19,7 +19,7 @@ export default async function ProfilePage() {
     redirect("/login?next=/profile");
   }
 
-  const [{ data: profile }, { data: stories }] = await Promise.all([
+  const [profileRes, storiesRes] = await Promise.all([
     supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
     supabase
       .from("stories")
@@ -28,7 +28,8 @@ export default async function ProfilePage() {
       .order("created_at", { ascending: false }),
   ]);
 
-  const list = (stories ?? []) as StoryWithRelations[];
+  const profile = profileRes.data as Profile | null;
+  const list = (storiesRes.data ?? []) as StoryWithRelations[];
   const allImages = list.flatMap((s) => s.images ?? []);
 
   const displayName =

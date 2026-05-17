@@ -1,11 +1,12 @@
 import { createClient } from "@/lib/supabase/server";
 import { MapClient } from "@/components/map/map-client";
+import type { Location, StoryWithRelations } from "@/types/database";
 
 export const revalidate = 0;
 
 export default async function MapPage() {
   const supabase = await createClient();
-  const [{ data: locations }, { data: stories }, { data: { user } }] = await Promise.all([
+  const [locRes, storyRes, userRes] = await Promise.all([
     supabase.from("locations").select("*"),
     supabase
       .from("stories")
@@ -14,13 +15,18 @@ export default async function MapPage() {
     supabase.auth.getUser(),
   ]);
 
+  const locations = (locRes.data ?? []) as Location[];
+  const stories = (storyRes.data ?? []) as StoryWithRelations[];
+  const user = userRes.data.user;
+
   let isAdmin = false;
   if (user) {
-    const { data: profile } = await supabase
+    const profileRes = await supabase
       .from("profiles")
       .select("is_admin")
       .eq("id", user.id)
       .maybeSingle();
+    const profile = profileRes.data as { is_admin: boolean } | null;
     isAdmin = profile?.is_admin === true;
   }
 
@@ -40,8 +46,8 @@ export default async function MapPage() {
       </div>
       <div className="relative flex-1 border-t border-sepia-700/20" style={{ height: "calc(100vh - 220px)", minHeight: 500 }}>
         <MapClient
-          locations={locations ?? []}
-          stories={stories ?? []}
+          locations={locations}
+          stories={stories}
           isAdmin={isAdmin}
         />
       </div>

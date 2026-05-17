@@ -5,13 +5,14 @@ import { Button } from "@/components/ui/button";
 import { StoryCard } from "@/components/story-card";
 import { LocationCard } from "@/components/location-card";
 import { ArrowRight, BookOpen, MapPin, Camera } from "lucide-react";
+import type { Location, StoryWithRelations } from "@/types/database";
 
 export const revalidate = 60;
 
 export default async function HomePage() {
   const supabase = await createClient();
 
-  const [{ data: locations }, { data: stories }] = await Promise.all([
+  const [locRes, storyRes] = await Promise.all([
     supabase.from("locations").select("*").limit(6),
     supabase
       .from("stories")
@@ -19,6 +20,9 @@ export default async function HomePage() {
       .order("created_at", { ascending: false })
       .limit(3),
   ]);
+
+  const locations = (locRes.data ?? []) as Location[];
+  const stories = (storyRes.data ?? []) as StoryWithRelations[];
 
   return (
     <>

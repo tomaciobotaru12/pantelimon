@@ -26,6 +26,7 @@ export type Database = {
           is_admin?: boolean;
           created_at?: string;
         };
+        Relationships: [];
       };
       locations: {
         Row: {
@@ -67,6 +68,7 @@ export type Database = {
           current_image_url?: string | null;
           created_at?: string;
         };
+        Relationships: [];
       };
       stories: {
         Row: {
@@ -105,6 +107,7 @@ export type Database = {
           lng?: number | null;
           created_at?: string;
         };
+        Relationships: [];
       };
       story_images: {
         Row: {
@@ -131,11 +134,13 @@ export type Database = {
           caption?: string | null;
           created_at?: string;
         };
+        Relationships: [];
       };
     };
-    Views: Record<string, never>;
-    Functions: Record<string, never>;
-    Enums: Record<string, never>;
+    Views: { [_ in never]: never };
+    Functions: { [_ in never]: never };
+    Enums: { [_ in never]: never };
+    CompositeTypes: { [_ in never]: never };
   };
 };
 
