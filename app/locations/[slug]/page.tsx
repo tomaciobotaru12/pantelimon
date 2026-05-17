@@ -23,7 +23,7 @@ export default async function LocationPage({
     .eq("slug", slug)
     .maybeSingle();
 
-  if (!location) notFound();
+  if (!location) return notFound();
 
   const { data: stories } = await supabase
     .from("stories")

@@ -25,7 +25,7 @@ export default async function StoryPage({
     .eq("id", id)
     .maybeSingle();
 
-  if (!story) notFound();
+  if (!story) return notFound();
 
   const {
     data: { user },

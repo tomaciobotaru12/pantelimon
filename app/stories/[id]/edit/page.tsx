@@ -21,7 +21,7 @@ export default async function EditStoryPage({
     .eq("id", id)
     .maybeSingle();
 
-  if (!story) notFound();
+  if (!story) return notFound();
 
   const { data: me } = await supabase
     .from("profiles")
