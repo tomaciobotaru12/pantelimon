@@ -3,10 +3,12 @@
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import "leaflet/dist/leaflet.css";
 import L, { type LatLngBoundsExpression } from "leaflet";
-import { MapContainer, Marker, TileLayer } from "react-leaflet";
+import { MapContainer, Marker, TileLayer, useMapEvents } from "react-leaflet";
 import { createClient } from "@/lib/supabase/client";
 import type { Location, StoryWithRelations } from "@/types/database";
 import { LocationModal } from "@/components/map/location-modal";
+import { AdminCreateLocationModal } from "@/components/admin-create-location-modal";
+import { Plus, X } from "lucide-react";
 
 const PANTELIMON_CENTER: [number, number] = [44.4498, 26.1551];
 
@@ -58,11 +60,6 @@ const storyIcon = L.divIcon({
   `,
 });
 
-// ───────────────────────────────────────────────────────────────
-// LocationMarker — sub-component cu eventHandlers stabili.
-// Acesta e fix-ul cheie: react-leaflet 5 nu re-atașează corect
-// listeneri dacă obiectul eventHandlers se schimbă la fiecare render.
-// ───────────────────────────────────────────────────────────────
 const LocationMarker = memo(function LocationMarker({
   location,
   isAdmin,
@@ -116,7 +113,22 @@ const StoryMarker = memo(function StoryMarker({
   );
 });
 
-// ───────────────────────────────────────────────────────────────
+// Child component care captureaza click-urile pe hartă (în mod plasare).
+function MapClickCapture({
+  active,
+  onPick,
+}: {
+  active: boolean;
+  onPick: (lat: number, lng: number) => void;
+}) {
+  useMapEvents({
+    click(e) {
+      if (!active) return;
+      onPick(e.latlng.lat, e.latlng.lng);
+    },
+  });
+  return null;
+}
 
 type Props = {
   locations: Location[];
@@ -129,6 +141,11 @@ export function MapView({ locations: initialLocations, stories, isAdmin = false 
   const [selected, setSelected] = useState<Location | null>(null);
   const [selectedStory, setSelectedStory] = useState<StoryWithRelations | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+
+  // Add-location flow
+  const [placementMode, setPlacementMode] = useState(false);
+  const [createCoords, setCreateCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [createOpen, setCreateOpen] = useState(false);
 
   useEffect(() => setLocations(initialLocations), [initialLocations]);
 
@@ -195,6 +212,19 @@ export function MapView({ locations: initialLocations, stories, isAdmin = false 
     setToast("Loc șters.");
   }, []);
 
+  const handleMapPick = useCallback((lat: number, lng: number) => {
+    setCreateCoords({ lat, lng });
+    setPlacementMode(false);
+    setCreateOpen(true);
+  }, []);
+
+  const handleLocationCreated = useCallback((loc: Location) => {
+    setLocations((prev) => [...prev, loc]);
+    setCreateOpen(false);
+    setCreateCoords(null);
+    setToast(`Creat: ${loc.title}`);
+  }, []);
+
   return (
     <>
       <MapContainer
@@ -205,7 +235,11 @@ export function MapView({ locations: initialLocations, stories, isAdmin = false 
         maxBounds={PANTELIMON_BOUNDS}
         maxBoundsViscosity={1.0}
         scrollWheelZoom
-        style={{ height: "100%", width: "100%" }}
+        style={{
+          height: "100%",
+          width: "100%",
+          cursor: placementMode ? "crosshair" : undefined,
+        }}
         zoomControl
       >
         <TileLayer
@@ -213,6 +247,8 @@ export function MapView({ locations: initialLocations, stories, isAdmin = false 
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           bounds={PANTELIMON_BOUNDS}
         />
+
+        <MapClickCapture active={placementMode} onPick={handleMapPick} />
 
         {locations.map((loc) => (
           <LocationMarker
@@ -229,14 +265,38 @@ export function MapView({ locations: initialLocations, stories, isAdmin = false 
         ))}
       </MapContainer>
 
+      {/* Bandă admin standard / bandă plasare */}
       {isAdmin ? (
         <div className="absolute top-3 left-1/2 -translate-x-1/2 z-[1000] pointer-events-none">
-          <span className="inline-flex items-center gap-2 rounded-full bg-sepia-300/95 text-sepia-900 text-xs uppercase tracking-widest px-3 py-1.5 shadow-lg pointer-events-auto">
-            Mod admin — trage pinurile ca să le repoziționezi
-          </span>
+          {placementMode ? (
+            <span className="inline-flex items-center gap-2 rounded-full bg-sepia-50 text-sepia-900 text-xs uppercase tracking-widest px-3 py-1.5 shadow-lg pointer-events-auto animate-pulse">
+              Click pe hartă pentru a alege locul
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-2 rounded-full bg-sepia-300/95 text-sepia-900 text-xs uppercase tracking-widest px-3 py-1.5 shadow-lg pointer-events-auto">
+              Mod admin — trage pinurile sau adaugă un loc nou
+            </span>
+          )}
         </div>
       ) : null}
 
+      {/* Buton + pentru admin (sau X dacă suntem în mod plasare) */}
+      {isAdmin ? (
+        <button
+          type="button"
+          onClick={() => setPlacementMode((m) => !m)}
+          className={`absolute bottom-6 right-6 z-[1000] h-14 w-14 rounded-full shadow-2xl flex items-center justify-center transition-all ${
+            placementMode
+              ? "bg-destructive text-destructive-foreground hover:scale-105"
+              : "bg-sepia-300 text-sepia-900 hover:bg-sepia-200 hover:scale-105"
+          }`}
+          aria-label={placementMode ? "Anulează plasarea" : "Adaugă un loc nou"}
+        >
+          {placementMode ? <X className="h-6 w-6" /> : <Plus className="h-6 w-6" />}
+        </button>
+      ) : null}
+
+      {/* Toast */}
       {toast ? (
         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-[1000] rounded-md bg-sepia-900/95 text-sepia-50 px-4 py-2 text-sm border border-sepia-300/30 shadow-xl">
           {toast}
@@ -256,6 +316,16 @@ export function MapView({ locations: initialLocations, stories, isAdmin = false 
         location={null}
         story={selectedStory}
         onClose={() => setSelectedStory(null)}
+      />
+
+      <AdminCreateLocationModal
+        open={createOpen}
+        initialCoords={createCoords}
+        onClose={() => {
+          setCreateOpen(false);
+          setCreateCoords(null);
+        }}
+        onCreated={handleLocationCreated}
       />
     </>
   );
