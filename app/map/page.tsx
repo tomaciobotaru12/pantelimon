@@ -40,8 +40,9 @@ export default async function MapPage() {
           Pantelimon, punct cu punct
         </h1>
         <p className="mt-2 max-w-2xl text-sepia-200/80 font-serif">
-          Apasă pe un marker. Fiecare are o poveste, o fotografie, un an. Markerele aurii sunt
-          locuri martor; cele cu inima de hârtie sunt amintiri lăsate de comunitate.
+          Apasă pe un marker pentru a vedea povestea locului — fotografii „atunci/acum",
+          perioadă istorică și amintirile lăsate de comunitate. Lipsește un loc important?
+          Trimite-i o sugestie adminului și îl va adăuga pe hartă.
         </p>
       </div>
       <div className="relative flex-1 border-t border-sepia-700/20" style={{ height: "calc(100vh - 220px)", minHeight: 500 }}>
