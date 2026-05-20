@@ -2,17 +2,12 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { MapPin, Calendar } from "lucide-react";
+import { MapPin, Calendar, Quote } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { decadeOf } from "@/lib/utils";
 import type { StoryWithRelations } from "@/types/database";
 
 export function StoryCard({ story }: { story: StoryWithRelations }) {
-  const thumb =
-    story.images?.[0]?.image_url ??
-    story.location?.cover_image ??
-    null;
-
   return (
     <motion.article
       whileHover={{ y: -4 }}
@@ -20,57 +15,65 @@ export function StoryCard({ story }: { story: StoryWithRelations }) {
     >
       <Link
         href={`/stories/${story.id}`}
-        className="group flex flex-col h-full overflow-hidden rounded-lg border border-sepia-700/20 bg-sepia-900/40 hover:border-sepia-300/40 transition-colors"
+        className="group relative flex flex-col h-full overflow-hidden rounded-lg border border-sepia-700/20 bg-sepia-900/40 hover:border-sepia-300/40 hover:bg-sepia-900/60 transition-all p-6"
       >
-        <div className="aspect-[16/10] w-full overflow-hidden bg-sepia-800 relative">
-          {thumb ? (
-            <img
-              src={thumb}
-              alt={story.title}
-              className="h-full w-full object-cover sepia-image transition-transform duration-700 group-hover:scale-105"
-            />
-          ) : (
-            <div className="flex h-full items-center justify-center text-sepia-700/60 font-display text-5xl italic">
-              "
-            </div>
-          )}
-          <div className="absolute inset-0 bg-gradient-to-t from-sepia-900/80 via-transparent to-transparent" />
+        {/* Decorativ — ghilimea de fundal */}
+        <Quote
+          className="absolute -top-2 -right-2 h-24 w-24 text-sepia-300/[0.04] rotate-180 pointer-events-none"
+          strokeWidth={1}
+        />
+
+        {/* Header — anul + decada / tag */}
+        <div className="flex items-center justify-between gap-2 mb-3">
           {story.year ? (
-            <span className="absolute top-3 left-3 inline-flex items-center gap-1 rounded-full bg-sepia-900/80 text-sepia-100 text-[11px] px-2.5 py-1 backdrop-blur-sm">
+            <span className="inline-flex items-center gap-1 text-[11px] uppercase tracking-widest text-sepia-300/80">
               <Calendar className="h-3 w-3" />
               {story.year}
             </span>
+          ) : (
+            <span />
+          )}
+          {story.tags && story.tags.length > 0 ? (
+            <Badge variant="outline" className="shrink-0">
+              {story.tags[0]}
+            </Badge>
+          ) : decadeOf(story.year) ? (
+            <Badge variant="outline" className="shrink-0">
+              {decadeOf(story.year)}
+            </Badge>
           ) : null}
         </div>
-        <div className="flex flex-col gap-3 p-5 flex-1">
-          <h3 className="font-display text-xl text-sepia-50 group-hover:text-sepia-200 transition-colors leading-tight">
-            {story.title}
-          </h3>
-          <p className="text-sm text-sepia-200/70 line-clamp-3 leading-relaxed font-serif">
-            {story.memory}
-          </p>
-          <div className="mt-auto flex items-center justify-between gap-2 pt-2">
-            <div className="flex items-center gap-2 text-xs text-sepia-300/70 min-w-0">
-              {story.location ? (
-                <span className="inline-flex items-center gap-1 truncate">
-                  <MapPin className="h-3 w-3 shrink-0" />
-                  <span className="truncate">{story.location.title}</span>
-                </span>
-              ) : null}
-              {story.profile?.username ? (
-                <span className="truncate">· {story.profile.username}</span>
-              ) : null}
-            </div>
-            {story.tags && story.tags.length > 0 ? (
-              <Badge variant="outline" className="shrink-0">
-                {story.tags[0]}
-              </Badge>
-            ) : decadeOf(story.year) ? (
-              <Badge variant="outline" className="shrink-0">
-                {decadeOf(story.year)}
-              </Badge>
-            ) : null}
-          </div>
+
+        {/* Titlu */}
+        <h3 className="font-display text-2xl text-sepia-50 group-hover:text-sepia-100 transition-colors leading-tight text-balance">
+          {story.title}
+        </h3>
+
+        {/* Linie subtilă */}
+        <div className="my-4 h-px w-12 bg-sepia-300/30" />
+
+        {/* Amintirea */}
+        <p className="text-[15px] text-sepia-200/85 line-clamp-6 leading-relaxed font-serif italic">
+          {story.memory}
+        </p>
+
+        {/* Footer — locație + autor */}
+        <div className="mt-5 pt-4 border-t border-sepia-700/20 flex items-center justify-between gap-2 text-xs text-sepia-300/70">
+          <span className="truncate">
+            {story.location ? (
+              <span className="inline-flex items-center gap-1">
+                <MapPin className="h-3 w-3 shrink-0" />
+                <span className="truncate">{story.location.title}</span>
+              </span>
+            ) : (
+              <span className="italic">undeva în Pantelimon</span>
+            )}
+          </span>
+          {story.profile?.username ? (
+            <span className="truncate font-medium text-sepia-200/80">
+              {story.profile.username}
+            </span>
+          ) : null}
         </div>
       </Link>
     </motion.article>
