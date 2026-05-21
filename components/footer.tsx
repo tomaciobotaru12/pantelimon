@@ -14,6 +14,7 @@ export function Footer() {
           <p className="text-sepia-200 uppercase text-xs tracking-widest">Explorează</p>
           <Link href="/map" className="hover:text-sepia-50 transition-colors">Harta</Link>
           <Link href="/feed" className="hover:text-sepia-50 transition-colors">Povești</Link>
+          <Link href="/poze" className="hover:text-sepia-50 transition-colors">Poze</Link>
           <Link href="/stories/new" className="hover:text-sepia-50 transition-colors">Contribuie</Link>
         </div>
         <div className="flex flex-col gap-2">

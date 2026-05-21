@@ -2,7 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MapPin, BookOpen, Plus, User as UserIcon } from "lucide-react";
+import { MapPin, BookOpen, Camera, Plus, User as UserIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export async function Navbar() {
@@ -54,6 +54,9 @@ export async function Navbar() {
           </NavLink>
           <NavLink href="/feed" icon={<BookOpen className="h-3.5 w-3.5" />}>
             Povești
+          </NavLink>
+          <NavLink href="/poze" icon={<Camera className="h-3.5 w-3.5" />}>
+            Poze
           </NavLink>
 
           <div className="mx-2 h-5 w-px bg-sepia-300/15 hidden sm:block" />

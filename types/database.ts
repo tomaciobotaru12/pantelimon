@@ -109,6 +109,36 @@ export type Database = {
         };
         Relationships: [];
       };
+      photos: {
+        Row: {
+          id: string;
+          user_id: string;
+          location_id: string | null;
+          image_url: string;
+          caption: string | null;
+          year: number | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          location_id?: string | null;
+          image_url: string;
+          caption?: string | null;
+          year?: number | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          location_id?: string | null;
+          image_url?: string;
+          caption?: string | null;
+          year?: number | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       story_images: {
         Row: {
           id: string;
@@ -148,6 +178,12 @@ export type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 export type Location = Database["public"]["Tables"]["locations"]["Row"];
 export type Story = Database["public"]["Tables"]["stories"]["Row"];
 export type StoryImage = Database["public"]["Tables"]["story_images"]["Row"];
+export type Photo = Database["public"]["Tables"]["photos"]["Row"];
+
+export type PhotoWithRelations = Photo & {
+  profile?: Profile | null;
+  location?: Location | null;
+};
 
 export type StoryWithRelations = Story & {
   profile?: Profile | null;
